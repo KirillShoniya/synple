@@ -13,6 +13,7 @@ do
     esac
 done
 
+DATE_TIME_NOW=$(date +'%Y-%m-%d %H:%M:%S');
 DEFAULT_COMPRESSION_LEVEL=9;
 is_telegram_available=0;
 
@@ -35,9 +36,9 @@ function notify() {
   # second argument is notification text
   #   Time delay is not used in Telegram notification process
   if [ $is_telegram_available -eq 1 ]; then
-    notify_telegram $telegram_token $telegram_chat_id "$2";
+    notify_telegram $telegram_token $telegram_chat_id "$DATE_TIME_NOW\n$2";
   else
-    notify_system $1 "$2";
+    notify_system $1 "$DATE_TIME_NOW\n$2";
   fi
 }
 
