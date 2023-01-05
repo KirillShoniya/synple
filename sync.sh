@@ -29,11 +29,11 @@ function notify_telegram {
   # first argument is Telegram bot token
   # second argument is Telegram chat id
   # third argument is notification message
-   status_code=$(
-    curl --write-out %{http_code} -s -X POST -H 'Content-Type: application/json' \
-       -d "{\"chat_id\": \"$2\", \"text\": \"$3\", \"disable_notification\": true}" \
-       https://api.telegram.org/bot$1/sendMessage \
-       > /dev/null
+
+    status_code=$(
+      curl -s -o /dev/null -w "%{http_code}" -X POST -H 'Content-Type: application/json' \
+        -d "{\"chat_id\": \"$2\", \"text\": \"$3\", \"disable_notification\": true}" \
+        https://api.telegram.org/bot$1/sendMessage
     );
 
    if [[ "$status_code" != 200 ]] ; then
@@ -77,7 +77,7 @@ function backup() {
   # Create backup of specified directory into specified path
   # first argument is local path
   # second argument is archive path
-  tar --exclude "node_modules" -I pigz -cf $2/$(date +'%m-%d-%Y').tar.gz $1 &>/dev/null;
+  tar --exclude "node_modules" -I pigz -cf $2/$(date +'%Y_%m_%d_%H_%M').tar.gz $1 &>/dev/null;
   if [ $? -ne 0 ]; then
     return 1;
   else
