@@ -49,16 +49,16 @@ function notify_system {
   # second argument is notification show delay in milliseconds
   # third argument is notification message
   SUMMARY="Directory sync"
+  log_level=low
   html_translated=$(echo "$3" | sed '{s/\\n/\r/g}');
-  if [ "$1" == "INFO" ]; then
-    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=low
-  elif [ "$1" == "WARNING" ]; then
-    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=normal
+
+  if [ "$1" == "WARNING" ]; then
+    log_level=normal
   elif [ "$1" == "CRITICAL" ]; then
-    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=critical
-  else
-    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=low
+    log_level=critical
   fi
+
+  notify-send "$SUMMARY" -t $2 "$html_translated" --urgency="$log_level"
 
   if [ $? -ne 0 ]; then
     return 1;
