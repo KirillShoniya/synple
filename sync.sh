@@ -50,7 +50,8 @@ function notify_system {
   # third argument is notification message
   SUMMARY="Directory sync"
   log_level=low
-  html_translated=$(echo "$3" | sed '{s/\\n/\r/g}');
+  # replace new line char to support notify-send format
+  translated_message=$(echo "$3" | sed '{s/\\n/\r/g}');
 
   if [ "$1" == "WARNING" ]; then
     log_level=normal
@@ -58,7 +59,7 @@ function notify_system {
     log_level=critical
   fi
 
-  notify-send "$SUMMARY" -t $2 "$html_translated" --urgency="$log_level"
+  notify-send "$SUMMARY" -t $2 "$translated_message" --urgency="$log_level"
 
   if [ $? -ne 0 ]; then
     return 1;
