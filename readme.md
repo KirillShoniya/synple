@@ -2,6 +2,8 @@
 
 This script do synchronisation of local and remote directory.
 
+![Main diagram](diagrams/main.png)
+
 ### How to use?
 
 Firstly you have to make script executable file
