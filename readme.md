@@ -1,6 +1,6 @@
 ### Simple folder sync
 
-This script do synchronisation of local and remote directory.
+This script do synchronisation from remote to local directory.
 
 ![Main diagram](diagrams/main.png)
 
