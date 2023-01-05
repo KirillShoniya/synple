@@ -18,10 +18,17 @@ DEFAULT_COMPRESSION_LEVEL=9;
 is_telegram_available=0;
 
 function logger() {
-    printf "[$(date +'%Y-%m-%d %H:%M:%S:%3N')] - $1 - $2\n";
+  # Prints specified message into stdout
+  # first argument is logging level
+  # second argument is logging message
+  printf "[$(date +'%Y-%m-%d %H:%M:%S:%3N')] - $1 - $2\n";
 }
 
 function notify_telegram {
+  # Send notification using Telegram API
+  # first argument is Telegram bot token
+  # second argument is Telegram chat id
+  # third argument is notification message
   logger "INFO" "Sending request to Telegram API";
   curl -s -X POST \
    -H 'Content-Type: application/json' \
@@ -45,6 +52,9 @@ function notify_telegram {
 }
 
 function notify_system {
+  # Send system notification using notify-send
+  # first argument is notification show delay in milliseconds
+  # second argument is notification message
   html_translated=$(echo "$2" | sed '{s/\\n/\r/g}');
   notify-send -t $1 "$html_translated";
   if [ $? -ne 0 ]; then
@@ -72,6 +82,9 @@ function notify() {
 }
 
 function backup() {
+  # Create backup of specified directory into specified path
+  # first argument is local path
+  # second argument is archive path
   tar --exclude "node_modules" -I pigz -cf $2/$(date +'%m-%d-%Y').tar.gz $1 &>/dev/null;
   if [ $? -ne 0 ]; then
     echo 1;
@@ -81,6 +94,12 @@ function backup() {
 }
 
 function sync() {
+  # Processing synchronisation between remote and local directory
+  # New files will be created, deleted file from remote directory will be deleted locally
+  # first argument is remote username
+  # second argument is remote host
+  # third argument is remote path
+  # fourth argument is local path
   rsync -az --delete --update --progress --exclude='node_modules' $1@$2:$3 $4 &>/dev/null;
   if [ $? -ne 0 ]; then
     echo 1;
