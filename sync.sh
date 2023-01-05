@@ -29,13 +29,6 @@ function notify_telegram {
   # first argument is Telegram bot token
   # second argument is Telegram chat id
   # third argument is notification message
-  logger "INFO" "Sending request to Telegram API";
-  curl -s -X POST \
-   -H 'Content-Type: application/json' \
-   -d "{\"chat_id\": \"$2\", \"text\": \"$3\", \"disable_notification\": true}" \
-   https://api.telegram.org/bot$1/sendMessage \
-   > /dev/null
-
    status_code=$(
     curl --write-out %{http_code} -s -X POST -H 'Content-Type: application/json' \
        -d "{\"chat_id\": \"$2\", \"text\": \"$3\", \"disable_notification\": true}" \
@@ -44,7 +37,6 @@ function notify_telegram {
     );
 
    if [[ "$status_code" != 200 ]] ; then
-     logger "CRITICAL" "Telegram API status code is not 200";
      return 1;
    else
      return 0;
@@ -72,8 +64,8 @@ function notify() {
   #   Time delay is not used in Telegram notification process
   logger "INFO" "$2"
   if [ $is_telegram_available -eq 1 ]; then
-    result=$(notify_telegram $telegram_token $telegram_chat_id "$DATE_TIME_NOW\n$2");
-    if [ "$result" != 0 ]; then
+    notify_telegram $telegram_token $telegram_chat_id "$DATE_TIME_NOW\n$2"
+    if [ "$?" != 0 ]; then
       notify_system $1 "$DATE_TIME_NOW\n$2";
     fi
   else
@@ -87,9 +79,9 @@ function backup() {
   # second argument is archive path
   tar --exclude "node_modules" -I pigz -cf $2/$(date +'%m-%d-%Y').tar.gz $1 &>/dev/null;
   if [ $? -ne 0 ]; then
-    echo 1;
+    return 1;
   else
-    echo 0;
+    return 0;
   fi
 }
 
@@ -102,9 +94,9 @@ function sync() {
   # fourth argument is local path
   rsync -az --delete --update --progress --exclude='node_modules' $1@$2:$3 $4 &>/dev/null;
   if [ $? -ne 0 ]; then
-    echo 1;
+    return 1;
   else
-    echo 0;
+    return 0;
   fi
 }
 
@@ -161,16 +153,16 @@ else
 fi
 
 notify 3000 'Backuping sync folder';
-backup_result=$(backup $local_path $archive_path);
-if [ "$backup_result" != 0 ]; then
+backup $local_path $archive_path
+if [ "$?" != 0 ]; then
   notify 10000 "Something went wrong while backup process";
   exit 1;
 else
   notify 5000 "Backup created successfully";
 
   notify 5000 "Start folders sync";
-  sync_result=$(sync $username $host $remote_path $local_path);
-  if [ "$sync_result" != 0 ]; then
+  sync $username $host $remote_path $local_path
+  if [ "$?" != 0 ]; then
     notify 10000 "Directory sync FAILED";
     exit 1;
   else
