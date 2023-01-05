@@ -4,6 +4,14 @@ This script do synchronisation from remote to local directory.
 
 ![Main diagram](diagrams/main.png)
 
+### Requirements
+
+Tested on Ubuntu 22.04
+
+1. curl
+1. rsync
+1. pigz
+
 ### How to use?
 
 Firstly you have to make script executable file
