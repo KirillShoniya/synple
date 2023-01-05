@@ -18,7 +18,7 @@ Done. Now you can run the script:
   -h <REMOTE_HOST> 
   -r <REMOTE_PATH>
   -l <LOCAL_PATH> 
-  -c <COMPRESSION_LEVEL> 
+  -c <COMPRESSION_LEVEL> (optional)
   -a <BACKUP_PATH>
   -t <BOT_TOKEN> (optional)  
   -x <TELEGRAM_CHAT_ID> (optional)  
