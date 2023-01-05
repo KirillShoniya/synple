@@ -81,7 +81,7 @@ function backup() {
 }
 
 function sync() {
-  rsync -az --update --progress --exclude='node_modules' $1@$2:$3 $4 &>/dev/null;
+  rsync -az --delete --update --progress --exclude='node_modules' $1@$2:$3 $4 &>/dev/null;
   if [ $? -ne 0 ]; then
     echo 1;
   else
