@@ -45,10 +45,21 @@ function notify_telegram {
 
 function notify_system {
   # Send system notification using notify-send
-  # first argument is notification show delay in milliseconds
-  # second argument is notification message
-  html_translated=$(echo "$2" | sed '{s/\\n/\r/g}');
-  notify-send -t $1 "$html_translated";
+  # first argument is notification level
+  # second argument is notification show delay in milliseconds
+  # third argument is notification message
+  SUMMARY="Directory sync"
+  html_translated=$(echo "$3" | sed '{s/\\n/\r/g}');
+  if [ "$1" == "INFO" ]; then
+    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=low
+  elif [ "$1" == "WARNING" ]; then
+    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=normal
+  elif [ "$1" == "CRITICAL" ]; then
+    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=critical
+  else
+    notify-send "$SUMMARY" -t $2 "$html_translated" --urgency=low
+  fi
+
   if [ $? -ne 0 ]; then
     return 1;
   else
@@ -57,19 +68,20 @@ function notify_system {
 }
 
 function notify() {
-  # first argument is time delay in milliseconds to
-  #   display notification in system. Not used when
-  #   Telegram notification is available
-  # second argument is notification text
-  #   Time delay is not used in Telegram notification process
-  logger "INFO" "$2"
+  # first argument is notification level
+  # second argument is time delay in milliseconds to
+  # display notification in system. Not used when
+  # Telegram notification is available
+  # third argument is notification text
+  # Note: Time delay is not used in Telegram notification process
+  logger "$1" "$3"
   if [ $is_telegram_available -eq 1 ]; then
-    notify_telegram $telegram_token $telegram_chat_id "$DATE_TIME_NOW\n$2"
+    notify_telegram $telegram_token $telegram_chat_id "$1\n$DATE_TIME_NOW\n$3"
     if [ "$?" != 0 ]; then
-      notify_system $1 "$DATE_TIME_NOW\n$2";
+      notify_system $1 $2 "$DATE_TIME_NOW\n$3";
     fi
   else
-    notify_system $1 "$DATE_TIME_NOW\n$2";
+    notify_system $1 $2 "$DATE_TIME_NOW\n$3";
   fi
 }
 
@@ -152,20 +164,20 @@ else
   is_telegram_available=0;
 fi
 
-notify 3000 'Backuping sync folder';
+notify "INFO" 3000 'Backuping sync folder';
 backup $local_path $archive_path
 if [ "$?" != 0 ]; then
-  notify 10000 "Something went wrong while backup process";
+  notify "INFO" 10000 "Something went wrong while backup process";
   exit 1;
 else
-  notify 5000 "Backup created successfully";
+  notify "INFO" 5000 "Backup created successfully";
 
-  notify 5000 "Start folders sync";
+  notify "INFO" 5000 "Start folders sync";
   sync $username $host $remote_path $local_path
   if [ "$?" != 0 ]; then
-    notify 10000 "Directory sync FAILED";
+    notify "CRITICAL" 10000 "Directory sync FAILED";
     exit 1;
   else
-    notify 5000 "Directory sync completed successfully";
+    notify "INFO" 5000 "Directory sync completed successfully";
   fi
 fi
