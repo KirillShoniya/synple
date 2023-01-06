@@ -15,6 +15,12 @@ done
 
 DATE_TIME_NOW=$(date +'%Y-%m-%d %H:%M:%S')
 DEFAULT_COMPRESSION_LEVEL=9
+
+# Notification show delay in milliseconds
+NOTIFICATION_DELAY_INFO=5000
+NOTIFICATION_DELAY_WARNING=10000
+NOTIFICATION_DELAY_CRITICAL=50000
+
 is_telegram_available=0
 
 function logger() {
@@ -50,17 +56,17 @@ function notify_system() {
   # second argument is notification message
 
   SUMMARY="Directory sync"
-  notification_delay=5000
+  notification_delay=$NOTIFICATION_DELAY_INFO
   log_level=low
   # replace new line char to support notify-send format
   translated_message=$(echo "$2" | sed '{s/\\n/\r/g}')
 
   if [ "$1" == "WARNING" ]; then
     log_level=normal
-    notification_delay=100000
+    notification_delay=$NOTIFICATION_DELAY_WARNING
   elif [ "$1" == "CRITICAL" ]; then
     log_level=critical
-    notification_delay=500000
+    notification_delay=$NOTIFICATION_DELAY_CRITICAL
   fi
 
   notify-send "$SUMMARY" -t $notification_delay "$translated_message" --urgency="$log_level";
