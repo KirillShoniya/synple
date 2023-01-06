@@ -30,37 +30,40 @@ function notify_telegram() {
   # second argument is Telegram chat id
   # third argument is notification message
 
-    status_code=$(
-      curl -s -o /dev/null -w "%{http_code}" -X POST -H 'Content-Type: application/json' \
-        -d "{\"chat_id\": \"$2\", \"text\": \"$3\", \"disable_notification\": true}" \
-        https://api.telegram.org/bot$1/sendMessage
-    );
+  status_code=$(
+    curl -s -o /dev/null -w "%{http_code}" -X POST -H 'Content-Type: application/json' \
+    -d "{\"chat_id\": \"$2\", \"text\": \"$3\", \"disable_notification\": true}" \
+    https://api.telegram.org/bot$1/sendMessage
+  );
 
-   if [[ "$status_code" != 200 ]] ; then
-     logger "WARNING" "Telegram response is not 200"
-     return 1
-   else
-     return 0
-   fi
+  if [[ "$status_code" != 200 ]] ; then
+    logger "WARNING" "Telegram response is not 200"
+    return 1
+  else
+    return 0
+  fi
 }
 
 function notify_system() {
   # Send system notification using notify-send
   # first argument is notification level
-  # second argument is notification show delay in milliseconds
-  # third argument is notification message
+  # second argument is notification message
+
   SUMMARY="Directory sync"
+  notification_delay=5000
   log_level=low
   # replace new line char to support notify-send format
-  translated_message=$(echo "$3" | sed '{s/\\n/\r/g}')
+  translated_message=$(echo "$2" | sed '{s/\\n/\r/g}')
 
   if [ "$1" == "WARNING" ]; then
     log_level=normal
+    notification_delay=100000
   elif [ "$1" == "CRITICAL" ]; then
     log_level=critical
+    notification_delay=500000
   fi
 
-  notify-send "$SUMMARY" -t $2 "$translated_message" --urgency="$log_level";
+  notify-send "$SUMMARY" -t $notification_delay "$translated_message" --urgency="$log_level";
 
   if [ $? -ne 0 ]; then
     return 1
@@ -71,19 +74,16 @@ function notify_system() {
 
 function notify() {
   # first argument is notification level
-  # second argument is time delay in milliseconds to
-  # display notification in system. Not used when
-  # Telegram notification is available
-  # third argument is notification text
-  # Note: Time delay is not used in Telegram notification process
-  logger "$1" "$3"
+  # second argument is notification text
+
+  logger "$1" "$2"
   if [ $is_telegram_available -eq 1 ]; then
-    notify_telegram $telegram_token $telegram_chat_id "$1\n$DATE_TIME_NOW\n$3"
+    notify_telegram $telegram_token $telegram_chat_id "$1\n$DATE_TIME_NOW\n$2"
     if [ "$?" != 0 ]; then
-      notify_system $1 $2 "$DATE_TIME_NOW\n$3"
+      notify_system $1 "$DATE_TIME_NOW\n$2"
     fi
   else
-    notify_system $1 $2 "$DATE_TIME_NOW\n$3"
+    notify_system $1 "$DATE_TIME_NOW\n$2"
   fi
 }
 
@@ -166,20 +166,20 @@ else
   is_telegram_available=0
 fi
 
-notify "INFO" 3000 'Backuping sync folder'
+notify "INFO" 'Backuping sync folder'
 backup $local_path $archive_path
 if [ "$?" != 0 ]; then
-  notify "INFO" 10000 "Something went wrong while backup process"
+  notify "INFO" "Something went wrong while backup process"
   exit 1
 else
-  notify "INFO" 5000 "Backup created successfully"
+  notify "INFO" "Backup created successfully"
 
-  notify "INFO" 5000 "Start folders sync"
+  notify "INFO" "Start folders sync"
   sync $username $host $remote_path $local_path
   if [ "$?" != 0 ]; then
-    notify "CRITICAL" 10000 "Directory sync FAILED"
+    notify "CRITICAL" "Directory sync FAILED"
     exit 1;
   else
-    notify "INFO" 5000 "Directory sync completed successfully"
+    notify "INFO" "Directory sync completed successfully"
   fi
 fi
