@@ -46,7 +46,7 @@ function notify_telegram() {
   );
 
   if [[ "$status_code" != 200 ]] ; then
-    logger "WARNING" "Telegram response is not 200"
+    logger "WARNING" "Telegram response is not OK: $status_code"
     return 1
   else
     return 0
@@ -73,7 +73,7 @@ function notify_system() {
     notification_delay=$NOTIFICATION_DELAY_CRITICAL
   fi
 
-  notify-send "$SUMMARY" -t $notification_delay "$translated_message" --urgency="$log_level";
+  notify-send "$SUMMARY" -t $notification_delay "$translated_message" --urgency="$log_level"
 
   if [ $? -ne 0 ]; then
     return 1
