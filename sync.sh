@@ -13,18 +13,18 @@ do
     esac
 done
 
-DATE_TIME_NOW=$(date +'%Y-%m-%d %H:%M:%S');
-DEFAULT_COMPRESSION_LEVEL=9;
-is_telegram_available=0;
+DATE_TIME_NOW=$(date +'%Y-%m-%d %H:%M:%S')
+DEFAULT_COMPRESSION_LEVEL=9
+is_telegram_available=0
 
 function logger() {
   # Prints specified message into stdout
   # first argument is logging level
   # second argument is logging message
-  printf "[$(date +'%Y-%m-%d %H:%M:%S:%3N')] - $1 - $2\n";
+  printf "[$(date +'%Y-%m-%d %H:%M:%S:%3N')] - $1 - $2\n"
 }
 
-function notify_telegram {
+function notify_telegram() {
   # Send notification using Telegram API
   # first argument is Telegram bot token
   # second argument is Telegram chat id
@@ -37,13 +37,14 @@ function notify_telegram {
     );
 
    if [[ "$status_code" != 200 ]] ; then
-     return 1;
+     logger "WARNING" "Telegram response is not 200"
+     return 1
    else
-     return 0;
+     return 0
    fi
 }
 
-function notify_system {
+function notify_system() {
   # Send system notification using notify-send
   # first argument is notification level
   # second argument is notification show delay in milliseconds
@@ -51,7 +52,7 @@ function notify_system {
   SUMMARY="Directory sync"
   log_level=low
   # replace new line char to support notify-send format
-  translated_message=$(echo "$3" | sed '{s/\\n/\r/g}');
+  translated_message=$(echo "$3" | sed '{s/\\n/\r/g}')
 
   if [ "$1" == "WARNING" ]; then
     log_level=normal
@@ -59,12 +60,12 @@ function notify_system {
     log_level=critical
   fi
 
-  notify-send "$SUMMARY" -t $2 "$translated_message" --urgency="$log_level"
+  notify-send "$SUMMARY" -t $2 "$translated_message" --urgency="$log_level";
 
   if [ $? -ne 0 ]; then
-    return 1;
+    return 1
   else
-    return 0;
+    return 0
   fi
 }
 
@@ -79,10 +80,10 @@ function notify() {
   if [ $is_telegram_available -eq 1 ]; then
     notify_telegram $telegram_token $telegram_chat_id "$1\n$DATE_TIME_NOW\n$3"
     if [ "$?" != 0 ]; then
-      notify_system $1 $2 "$DATE_TIME_NOW\n$3";
+      notify_system $1 $2 "$DATE_TIME_NOW\n$3"
     fi
   else
-    notify_system $1 $2 "$DATE_TIME_NOW\n$3";
+    notify_system $1 $2 "$DATE_TIME_NOW\n$3"
   fi
 }
 
@@ -90,11 +91,11 @@ function backup() {
   # Create backup of specified directory into specified path
   # first argument is local path
   # second argument is archive path
-  tar --exclude "node_modules" -I pigz -cf $2/$(date +'%Y_%m_%d_%H_%M').tar.gz $1 &>/dev/null;
+  tar --exclude "node_modules" -I pigz -cf $2/$(date +'%Y_%m_%d_%H_%M').tar.gz $1 &>/dev/null
   if [ $? -ne 0 ]; then
-    return 1;
+    return 1
   else
-    return 0;
+    return 0
   fi
 }
 
@@ -105,80 +106,80 @@ function sync() {
   # second argument is remote host
   # third argument is remote path
   # fourth argument is local path
-  rsync -az --delete --update --progress --exclude='node_modules' $1@$2:$3 $4 &>/dev/null;
+  rsync -az --delete --update --progress --exclude='node_modules' $1@$2:$3 $4 &>/dev/null
   if [ $? -ne 0 ]; then
-    return 1;
+    return 1
   else
-    return 0;
+    return 0
   fi
 }
 
 if [ -z "$username" ]; then
-  logger "CRITICAL" "Remote username must be specified";
-  exit 1;
+  logger "CRITICAL" "Remote username must be specified"
+  exit 1
 else
-  logger "INFO" "Remote username is: '$username'";
+  logger "INFO" "Remote username is: '$username'"
 fi
 
 if [ -z "$host" ]; then
-  logger "CRITICAL" "Remote host must be specified";
+  logger "CRITICAL" "Remote host must be specified"
   exit 1;
 else
-  logger "INFO" "Remote host is: '$host'";
+  logger "INFO" "Remote host is: '$host'"
 fi
 
 if [ -z "$remote_path" ]; then
-  logger "CRITICAL" "Remote path must be specified";
-  exit 1;
+  logger "CRITICAL" "Remote path must be specified"
+  exit 1
 else
-  logger "INFO" "Remote path is: '$remote_path'";
+  logger "INFO" "Remote path is: '$remote_path'"
 fi
 
 if [ -z "$local_path" ]; then
-  echo "Local path must be specified";
-  exit 1;
+  echo "Local path must be specified"
+  exit 1
 else
-  logger "INFO" "Local path is: '$local_path'";
+  logger "INFO" "Local path is: '$local_path'"
 fi
 
 if [ -z "$archive_path" ]; then
-  echo "Archive path must be specified";
-  exit 1;
+  echo "Archive path must be specified"
+  exit 1
 else
-  archive_path=$archive_path/$(date +'%m/%d/%Y')
-  logger "INFO" "Archive path is: '$archive_path'";
-  mkdir -p $archive_path;
+  archive_path=$archive_path/$(date +'%Y/%d/%m');
+  logger "INFO" "Archive path is: '$archive_path'"
+  mkdir -p $archive_path
 fi
 
 if [ -z "$compression_level" ]; then
-  logger "INFO" "Compression level is not specified. Default is: $DEFAULT_COMPRESSION_LEVEL";
-  compression_level=$DEFAULT_COMPRESSION_LEVEL;
+  logger "WARNING" "Compression level is not specified. Default is: $DEFAULT_COMPRESSION_LEVEL"
+  compression_level=$DEFAULT_COMPRESSION_LEVEL
 else
-  logger "INFO" "Compression level is: '$compression_level'";
+  logger "INFO" "Compression level is: '$compression_level'"
 fi
 
-if [ ! -z "$telegram_token" ] || [ ! -z "$telegram_chat_id" ]; then
-  logger "INFO" "Using Telegram notifications";
-  is_telegram_available=1;
+if [ ! -z "$telegram_token" ] && [ ! -z "$telegram_chat_id" ]; then
+  logger "INFO" "Using Telegram notifications"
+  is_telegram_available=1
 else
-  logger "WARNING" "Telegram token is not configured. Using system notifications";
-  is_telegram_available=0;
+  logger "WARNING" "Telegram credentials is not specified. Switched to OS notifications"
+  is_telegram_available=0
 fi
 
-notify "INFO" 3000 'Backuping sync folder';
+notify "INFO" 3000 'Backuping sync folder'
 backup $local_path $archive_path
 if [ "$?" != 0 ]; then
-  notify "INFO" 10000 "Something went wrong while backup process";
-  exit 1;
+  notify "INFO" 10000 "Something went wrong while backup process"
+  exit 1
 else
-  notify "INFO" 5000 "Backup created successfully";
+  notify "INFO" 5000 "Backup created successfully"
 
-  notify "INFO" 5000 "Start folders sync";
+  notify "INFO" 5000 "Start folders sync"
   sync $username $host $remote_path $local_path
   if [ "$?" != 0 ]; then
-    notify "CRITICAL" 10000 "Directory sync FAILED";
+    notify "CRITICAL" 10000 "Directory sync FAILED"
     exit 1;
   else
-    notify "INFO" 5000 "Directory sync completed successfully";
+    notify "INFO" 5000 "Directory sync completed successfully"
   fi
 fi

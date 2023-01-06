@@ -9,8 +9,13 @@ This script do synchronisation from remote to local directory.
 Tested on Ubuntu 22.04
 
 1. curl
-1. rsync
-1. pigz
+2. rsync
+3. pigz
+4. notify-osd
+
+To resolve those dependencies run this command:
+
+```sudo apt install curl rsync pigz notify-osd```
 
 ### How to use?
 
@@ -32,7 +37,7 @@ Done. Now you can run the script:
   -x <TELEGRAM_CHAT_ID> (optional)  
 ``` 
 
-### How to use Telegram notifications
+### How to use Telegram notifications?
 
 1. Create bot
 2. Get bot token
@@ -42,3 +47,5 @@ Done. Now you can run the script:
       curl https://api.telegram.org/bot<BOT_TOKEN>/getUpdates
       ```
 5. Set bot_token and chat_id as script command line arguments
+
+**Note: Feel free to not use Telegram notifications. By default, OS notifications will be used.**
