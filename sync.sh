@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 while getopts u:h:r:l:c:a:t:x: flag
 do
     case "${flag}" in
