@@ -122,7 +122,7 @@ function sync() {
   #    third argument is remote path
   #    fourth argument is local path
 
-  rsync -az --delete --update --progress --exclude='node_modules' $1@$2:$3 $4 &>/dev/null
+  rsync -az --delete --update --exclude='node_modules' $1@$2:$3 $4 &>/dev/null
   if [ $? -ne 0 ]; then
     return 1
   else
