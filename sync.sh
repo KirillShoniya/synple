@@ -12,7 +12,7 @@ do
     esac
 done
 
-DATE_TIME_NOW=$(date +'%Y-%m-%d %H:%M:%S')
+DATE_TIME_NOW=$(date -u +'%Y-%m-%d %H:%M:%S %Z')
 DEFAULT_COMPRESSION_LEVEL=9
 
 # Notification show delay in milliseconds
@@ -43,7 +43,7 @@ function logger() {
     level=${green}$1${nc}
   fi
 
-  printf "[$(date +'%Y-%m-%d %H:%M:%S.%3N')] - $level - $2\n"
+  printf "[$(date -u +'%Y-%m-%d %H:%M:%S.%3N %Z')] - $level - $2\n"
 }
 
 function notify_telegram() {
@@ -117,7 +117,7 @@ function backup() {
   #    first argument is local path
   #    second argument is archive path
 
-  tar --exclude "node_modules" -I pigz -cf $2/$(date +'%Y_%m_%d_%H_%M').tar.gz $1 &>/dev/null
+  tar --exclude "node_modules" -I pigz -cf $2/$(date -u +'%Y_%m_%d_%H_%M').tar.gz $1 &>/dev/null
   if [ $? -ne 0 ]; then
     return 1
   fi
