@@ -33,11 +33,14 @@ Done. Now you can run the script:
   -l <LOCAL_PATH> 
   -c <COMPRESSION_LEVEL> (optional)
   -a <BACKUP_PATH>
-  -t <BOT_TOKEN> (optional)  
   -x <TELEGRAM_CHAT_ID> (optional)  
 ``` 
 
 ### How to use Telegram notifications?
+
+Add this line into ```~/.bashrc```
+
+```export SYNC_TELEGRAM_TOKEN='<BOT_TOKEN>'```
 
 1. Create bot
 2. Get bot token
