@@ -43,7 +43,7 @@ function logger() {
     level=${green}$1${nc}
   fi
 
-  printf "[$(date +'%Y-%m-%d %H:%M:%S:%3N')] - $level - $2\n"
+  printf "[$(date +'%Y-%m-%d %H:%M:%S.%3N')] - $level - $2\n"
 }
 
 function notify_telegram() {
@@ -62,9 +62,8 @@ function notify_telegram() {
   if [ "$status_code" != 200 ] ; then
     logger "WARNING" "Telegram response is not OK: $status_code"
     return 1
-  else
-    return 0
   fi
+  return 0
 }
 
 function notify_system() {
@@ -91,9 +90,8 @@ function notify_system() {
 
   if [ $? -ne 0 ]; then
     return 1
-  else
-    return 0
   fi
+  return 0
 }
 
 function notify() {
@@ -122,9 +120,8 @@ function backup() {
   tar --exclude "node_modules" -I pigz -cf $2/$(date +'%Y_%m_%d_%H_%M').tar.gz $1 &>/dev/null
   if [ $? -ne 0 ]; then
     return 1
-  else
-    return 0
   fi
+  return 0
 }
 
 function sync() {
@@ -139,9 +136,8 @@ function sync() {
   rsync -az --delete --update --exclude='node_modules' $1@$2:$3 $4 &>/dev/null
   if [ $? -ne 0 ]; then
     return 1
-  else
-    return 0
   fi
+  return 0
 }
 
 if [ -z "$username" ]; then
