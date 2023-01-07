@@ -199,7 +199,7 @@ fi
 notify "INFO" 'Backuping sync folder'
 backup $local_path $archive_path
 if [ $? != 0 ]; then
-  notify "INFO" "Something went wrong while backup process"
+  notify "CRITICAL" "Something went wrong while backup process"
   exit 1
 else
   notify "INFO" "Backup created successfully"
