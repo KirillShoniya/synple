@@ -29,7 +29,21 @@ function logger() {
   #    first argument is logging level
   #    second argument is logging message
 
-  printf "[$(date +'%Y-%m-%d %H:%M:%S:%3N')] - $1 - $2\n"
+  # Logging colours
+  green="\033[0;36m"
+  red="\033[0;31m"
+  gray="\033[1;37m"
+  nc="\033[0m" # no color
+
+  if [ "$1" == "WARNING" ]; then
+    level=${gray}$1${nc}
+  elif [ "$1" == "CRITICAL" ]; then
+    level=${red}$1${nc}
+  else
+    level=${green}$1${nc}
+  fi
+
+  printf "[$(date +'%Y-%m-%d %H:%M:%S:%3N')] - $level - $2\n"
 }
 
 function notify_telegram() {
@@ -162,7 +176,7 @@ if [ -z "$archive_path" ]; then
   logger "CRITICAL" "Archive path must be specified"
   exit 1
 else
-  archive_path=$archive_path/$(date +'%Y/%d/%m');
+  archive_path=$archive_path/$(date +'%Y/%d/%m')
   logger "INFO" "Archive path is: '$archive_path'"
   mkdir -p $archive_path
 fi
