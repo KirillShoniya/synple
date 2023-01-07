@@ -41,7 +41,7 @@ Done. Now you can run the script:
 
 1. Create bot
 2. Get bot token
-3. Start communicate with bot to create chat_id
+3. Start to communicate with bot to create chat_id
 4. Get chat_id using this command:
    1. ```shell
       curl https://api.telegram.org/bot<BOT_TOKEN>/getUpdates

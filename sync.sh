@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-while getopts u:h:r:l:c:a:t:x: flag
+while getopts u:h:r:l:c:a:x: flag
 do
     case "${flag}" in
         u) username=${OPTARG};;
@@ -8,7 +8,6 @@ do
         l) local_path=${OPTARG};;
         c) compression_level=${OPTARG};;
         a) archive_path=${OPTARG};;
-        t) telegram_token=${OPTARG};;
         x) telegram_chat_id=${OPTARG};;
     esac
 done
@@ -21,6 +20,7 @@ NOTIFICATION_DELAY_INFO=5000
 NOTIFICATION_DELAY_WARNING=10000
 NOTIFICATION_DELAY_CRITICAL=50000
 
+telegram_token=$SYNC_TELEGRAM_TOKEN
 is_telegram_available=0
 
 function logger() {
@@ -43,9 +43,9 @@ function notify_telegram() {
     curl -s -o /dev/null -w "%{http_code}" -X POST -H 'Content-Type: application/json' \
     -d "{\"chat_id\": \"$2\", \"text\": \"$3\", \"disable_notification\": true}" \
     https://api.telegram.org/bot$1/sendMessage
-  );
+  )
 
-  if [[ "$status_code" != 200 ]] ; then
+  if [ "$status_code" != 200 ] ; then
     logger "WARNING" "Telegram response is not OK: $status_code"
     return 1
   else
@@ -91,7 +91,7 @@ function notify() {
   logger "$1" "$2"
   if [ $is_telegram_available -eq 1 ]; then
     notify_telegram $telegram_token $telegram_chat_id "$1\n$DATE_TIME_NOW\n$2"
-    if [ "$?" != 0 ]; then
+    if [ $? != 0 ]; then
       notify_system $1 "$DATE_TIME_NOW\n$2"
     fi
   else
@@ -139,7 +139,7 @@ fi
 
 if [ -z "$host" ]; then
   logger "CRITICAL" "Remote host must be specified"
-  exit 1;
+  exit 1
 else
   logger "INFO" "Remote host is: '$host'"
 fi
@@ -152,14 +152,14 @@ else
 fi
 
 if [ -z "$local_path" ]; then
-  echo "Local path must be specified"
+  logger "CRITICAL" "Local path must be specified"
   exit 1
 else
   logger "INFO" "Local path is: '$local_path'"
 fi
 
 if [ -z "$archive_path" ]; then
-  echo "Archive path must be specified"
+  logger "CRITICAL" "Archive path must be specified"
   exit 1
 else
   archive_path=$archive_path/$(date +'%Y/%d/%m');
@@ -174,7 +174,7 @@ else
   logger "INFO" "Compression level is: '$compression_level'"
 fi
 
-if [ ! -z "$telegram_token" ] && [ ! -z "$telegram_chat_id" ]; then
+if [ ! -z "$SYNC_TELEGRAM_TOKEN" ] && [ ! -z "$telegram_chat_id" ]; then
   logger "INFO" "Using Telegram notifications"
   is_telegram_available=1
 else
@@ -184,7 +184,7 @@ fi
 
 notify "INFO" 'Backuping sync folder'
 backup $local_path $archive_path
-if [ "$?" != 0 ]; then
+if [ $? != 0 ]; then
   notify "INFO" "Something went wrong while backup process"
   exit 1
 else
@@ -192,9 +192,9 @@ else
 
   notify "INFO" "Start folders sync"
   sync $username $host $remote_path $local_path
-  if [ "$?" != 0 ]; then
+  if [ $? != 0 ]; then
     notify "CRITICAL" "Directory sync FAILED"
-    exit 1;
+    exit 1
   else
     notify "INFO" "Directory sync completed successfully"
   fi
