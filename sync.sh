@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-while getopts u:h:r:l:c:a:x: flag
+while getopts u:h:r:l:c:a:x:o: flag
 do
     case "${flag}" in
         u) username=${OPTARG};;
@@ -9,6 +9,7 @@ do
         c) compression_level=${OPTARG};;
         a) archive_path=${OPTARG};;
         x) telegram_chat_id=${OPTARG};;
+        o) log_file_path=${OPTARG};;
     esac
 done
 
@@ -22,12 +23,54 @@ NOTIFICATION_DELAY_CRITICAL=50000
 
 telegram_token=$SYNC_TELEGRAM_TOKEN
 is_telegram_available=0
+is_log_enabled=0
+is_log_file_created=0
+
+function datetime_now () {
+  local res=$(date -u +'%Y-%m-%d %H:%M:%S.%3N %Z')
+  echo $res
+}
+
+function create_log_file () {
+  if [ $is_log_enabled -eq 1 ]; then
+
+    if [ ! -f "$log_file_path" ]; then
+      touch $log_file_path
+
+      if [ "$?" == 1 ]; then
+        log_dir=$(dirname "$log_file_path")
+
+        if [ ! -d "$log_dir" ]; then
+          mkdir -p "$log_dir"
+
+          if [ "$?" == 1 ]; then
+            return 1
+          fi
+
+        else
+          touch $log_file_path
+
+          if [ "$?" == 1 ]; then
+            return 1
+          fi
+        fi
+      fi
+    fi
+  fi
+
+  return 0
+}
 
 function logger() {
   # Prints specified message into stdout
   # Params:
   #    first argument is logging level
   #    second argument is logging message
+  log_timestamp=$(datetime_now)
+
+  if [ $is_log_file_created -eq 1 ]; then
+    printf "[$log_timestamp] - $level - $2\n" >> "$log_file_path"
+  fi
 
   # Logging colours
   green="\033[0;36m"
@@ -43,7 +86,10 @@ function logger() {
     level=${green}$1${nc}
   fi
 
-  printf "[$(date -u +'%Y-%m-%d %H:%M:%S.%3N %Z')] - $level - $2\n"
+  log_message_info=$2
+  log_message_template="[$log_timestamp] - $level -"
+
+  printf "$log_message_template $2\n"
 }
 
 function notify_telegram() {
@@ -102,12 +148,12 @@ function notify() {
 
   logger "$1" "$2"
   if [ $is_telegram_available -eq 1 ]; then
-    notify_telegram $telegram_token $telegram_chat_id "$1\n$DATE_TIME_NOW\n$2"
+    notify_telegram $telegram_token $telegram_chat_id "$1\n$(datetime_now)\n$2"
     if [ $? != 0 ]; then
-      notify_system $1 "$DATE_TIME_NOW\n$2"
+      notify_system $1 "$(datetime_now)\n$2"
     fi
   else
-    notify_system $1 "$DATE_TIME_NOW\n$2"
+    notify_system $1 "$(datetime_now)\n$2"
   fi
 }
 
@@ -190,6 +236,23 @@ if [ ! -z "$SYNC_TELEGRAM_TOKEN" ] && [ ! -z "$telegram_chat_id" ]; then
 else
   logger "WARNING" "Telegram credentials is not specified. Switched to OS notifications"
   is_telegram_available=0
+fi
+
+
+
+if [ -z "$log_file_path" ]; then
+  logger "WARNING" "Log file path is not specified. Logging to file disabled."
+else
+  is_log_enabled=1
+
+  create_log_file
+
+  if [ "$?" -eq 0 ]; then
+    is_log_file_created=1
+    logger "INFO" "Log file path is: '$log_file_path'"
+  else
+    logger "WARNING" "Unable to create log file: '$log_file_path'"
+  fi
 fi
 
 notify "INFO" 'Backuping sync folder'
