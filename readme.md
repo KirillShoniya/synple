@@ -6,6 +6,8 @@ This script do synchronization from remote to local directory.
 
 ### Requirements
 
+This script use only SSH keys.
+
 Tested on Ubuntu 22.04
 
 1. curl

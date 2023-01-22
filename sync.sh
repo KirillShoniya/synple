@@ -238,8 +238,6 @@ else
   is_telegram_available=0
 fi
 
-
-
 if [ -z "$log_file_path" ]; then
   logger "WARNING" "Log file path is not specified. Logging to file disabled."
 else
